@@ -2,17 +2,22 @@ import express from 'express';
 import multer from  'multer';
 import Product from '../controllers/products/product';
 import Category from '../controllers/category_product/category_product';
+
+import OperationProduct from '../controllers/products/operationsProducts';
 import config from  '../config/multer/multer';
 const product = new Product();
 const category = new Category();
 const route = express.Router();
 const upload = multer(config);
-
+const operationProduct = new OperationProduct();
 
 //ROUTES GET
 route.get('/product',product.index);
 route.get('/category',category.index);
 route.get('/product/:id',product.show);
+route.get('/searchProductName',operationProduct.searchProducts);
+// route.get('/filter',operationProduct.filter);
+route.get('/filterProducts',operationProduct.filterProducts);
 
 //ROUTES POST
 route.post('/product',product.create);

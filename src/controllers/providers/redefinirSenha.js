@@ -1,20 +1,21 @@
 import knex from '../../database/config';
-import generete from '../utils/generete_cod';
-import Hash from './security';
+import generete  from '../utils/generete_cod';
+import Hash from '../users/security';
 import emails from '../utils/smptemail';
+
 const hash = new Hash();
-class RefinirSenha{
 
-    async create(request,response){
+class ResetPassword{
 
+    async create(request, response){
         const{
             email
         } = request.body;
 
-       const  now = new Date();
+        const  now = new Date();
         now.setHours(now.getHours()+1);
         
-        const user = await knex('users')
+        const user = await knex('provider')
                         .select('id','email','name')
                         .where('email',email)
                         .first()
@@ -24,12 +25,10 @@ class RefinirSenha{
             return response.status(400).json({message:'Nenhum usuário encontrado'});
 
         }
-        console.log(user)
         const codigo = generete()
         const token = hash.hashPassword(codigo);
         const data ={expirestoken:now,token:token}
-        console.log(data)
-        await knex('users').update(data)
+        await knex('provider').update(data)
                     .where('id',user.id)
                     .then(async results =>{
 
@@ -57,7 +56,7 @@ class RefinirSenha{
         } = request.body;
 
         const user = await knex.select('id','expirestoken','token','email')
-                            .from('users')
+                            .from('provider')
                             .where('email',email)
                             .first();
         
@@ -97,7 +96,7 @@ class RefinirSenha{
                 message:'Senhas não são iguas'
             });
         }
-        const user = await knex.select('id').from('users').where('email',email).first();
+        const user = await knex.select('id').from('provider').where('email',email).first();
         const data = {password:hash.hashPassword(passwords)};
         await  knex('user')
                     .update(data)
@@ -113,5 +112,4 @@ class RefinirSenha{
 
     }
 }
-
-export default RefinirSenha;
+export default ResetPassword;

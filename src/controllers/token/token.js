@@ -12,7 +12,7 @@ class Token {
         });
     }
 
-    validateToken(request, response) {
+    validateToken(request, response, next) {
 
         const authHeader = request.headers.authorization;
         if (!authHeader)
@@ -39,28 +39,23 @@ class Token {
             if (err) return response.status(401).json({
                 message: false
             });
-
-            return response.status(200).json({message:true,data:decoded});
+            request.user = decoded;
+            response.status(200).json(decoded);
+            next();
         });
         
     }
 
-    refreshToken(request, response) {
+    refreshToken(token) {
 
-
-        const token = request.body.token || request.query.token || ''
         jwt.verify(token, process.env.HASH_TOKEN, function (err, decoded) {
             if (err) {
-                return response.status(400).json({
-                    message: err
-                })
+               return err;
             }
             let token = jwt.sign(params, process.env.HASH_TOKEN, {
                 expiresIn: process.env.TIME_TOKEN
             })
-            return response.status(200).send({
-                valid: token
-            })
+           return token;
         })
     }
 }

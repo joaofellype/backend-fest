@@ -8,7 +8,7 @@ class Product{
         const {
 
                 name,
-                id_category_product,
+                category_product,
                 id_provider,
                 price,
                 description,
@@ -16,12 +16,28 @@ class Product{
                 status,
                 address,
                 images,
-                itens
+                itens,
+                horary
         } = request.body;
-        
+
+
+        const arrayProduct = [];
+        arrayProduct.push(request.body);
+        arrayProduct.map(data=>{
+            if(data.name==''){
+                return response.status(400).json({
+                    message:'Campo nome está vazio'
+                })
+            }
+            if(data.price==''){
+                return response.status(400).json({
+                    message:'Campo preço está vazio'
+                })
+            }
+        })
         const data = {
             name,
-            id_category_product,
+            category_product,
             id_provider,
             price,
             description,
@@ -29,10 +45,13 @@ class Product{
             status,
             address,
             images,
-            itens
+            itens,
+            horary
+             
         }
+        console.log(data)
         await knex('product')
-             .insert(data)
+             .insert(request.body)
              .returning('*')
              .then(results => {
 
@@ -56,6 +75,7 @@ class Product{
         } = request.params;
 
         await knex('products')
+                .join('provider','product.id_provider','=','provider.id')
              .where('id',id)
              .then(results => {
                  response.status(200).json(results);
@@ -68,8 +88,9 @@ class Product{
     async index(request,response){
 
 
-        await knex.select('*')
-             .from('product')
+        await knex('product')
+             .join('provider','product.id_provider','=','provider.id')
+             .select('provider.name as NameProvider','product.name','product.price','product.itens','product.images','product.description','product.category_product','product.capacity','product.id')
              .then(resullts =>{
 
                 response.status(201).json(resullts);

@@ -19,9 +19,11 @@ class Provider{
             passwords,
             cnpj,
             address,
-            operation,
+            id_category_provider,
             image_user,
-            type
+            type,
+            horary,
+            operation
         } = request.body;
 
         if(regex.validateEmail(email) ==false){
@@ -34,7 +36,7 @@ class Provider{
 
         const id = uuid4();   
         const password = hash.hashPassword(passwords);
-        const data ={id,name,email,number,password,address,type,cnpj,image_user,operation};
+        const data ={id,name,email,id_category_provider,operation,horary,number,password,address,type,cnpj,image_user,};
 
         await knex('provider')
              .insert(data)
@@ -55,7 +57,7 @@ class Provider{
     async index(request,response){
 
 
-        await knex.select('name','email','number','cnpj','type','operation','image_user')
+        await knex.select('id','name','email','number','cnpj','type','operation','image_user')
                   .from('provider')
                   .then( results => {
 
@@ -70,14 +72,14 @@ class Provider{
     async show(request,response){
 
         const { id } = request.params;
-        await knex.select('*')
+        await knex.select('name','adddress','image_user','number','type','cnpj')
                   .from('provider')
                   .where('id',id)
                   .then( results => {
                       response.status(200).json(results)
                   })
                   .catch( error => {
-                      response.status(401).json(error);
+                      response.status(400).json(error);
                   })
     }
 }

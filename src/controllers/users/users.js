@@ -1,12 +1,15 @@
 import  { v4 as uuid4 } from 'uuid';
+import Token from '../token/token';
 import Hash from './security';
-import moment from 'moment';
 import Regex from './regex';
+
+
 import ValidateUser from './validateUser';
 import knex from '../../database/config';
 const hash = new Hash();
 const regex =  new Regex();
 const validateUser = new ValidateUser();
+const token =  new Token();
 class Users {
 
     async create(request,response){
@@ -20,8 +23,9 @@ class Users {
                 image_user
              } = request.body;
 
-    
-
+        if(name =='' || email==''|| passwords==''){
+            return response.status(400).json({message:'Campos Vazios'})
+        }
         if(regex.validateEmail(email) ==false){
             return response.status(400).json({message:'Email inválido'})
         }
@@ -29,15 +33,20 @@ class Users {
             return response.status(400).json({message:'Senha precisar ter: uma letra maiúscula, uma letra minúscula, um número, uma caractere especial(@#$%) e tamanho entre 6-20.'})
 
         }
+        if(validateUser.validateUser(email)== false){
+            return response.status(400).json({message:'Email já cadastrado!'});
+        }
+        if(validateUser.validateUserNumber(number)== false){
+            return response.status(400).json({message:'Número  já cadastrado!'});
+        }
         const id = uuid4();   
         const password = hash.hashPassword(passwords);
         const data ={id,name,email,number,password,address,birthday,image_user};
-        console.log(data)
          await knex('users')
                 .insert(data).returning('*')
                 .then(results => {
                     
-                    response.status(200).json({message:'Usuário cadastrado com sucesso',results});
+                    response.status(200).json({message:'Usuário cadastrado com sucesso',results,token:token.genereteToken(request.user)});
                 }).catch(error =>{
                     console.log(error)
                     response.status(400).json({message:'Erro ao inserir usuário',error});
@@ -88,7 +97,7 @@ class Users {
     }
 
     async index(request,response){
-
+            console.log(request.user)
         await knex.select('*')
                   .from('users')
                   .then(results =>{
@@ -104,6 +113,10 @@ class Users {
                   .catch(error => {
                       response.status(400).json(error);
                   })
+    }
+    async upload(request,response){
+       return response.json({message:`http://192.168.100.4:3333/uploads/${request.file.originalname}`})
+
     }
 }
 
